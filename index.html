@@ -25,12 +25,16 @@
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
+            width: 90%;
+            max-width: 400px; /* Set a maximum width for better readability on larger screens */
         }
 
         #signatureCanvas {
             border: 1px solid #ccc;
             border-radius: 5px;
             margin: 10px 0;
+            width: 100%;
+            height: auto;
         }
 
         #controls {
@@ -59,7 +63,7 @@
 
 <body>
     <div id="signatureContainer">
-        <canvas id="signatureCanvas" width="400" height="200"></canvas>
+        <canvas id="signatureCanvas"></canvas>
         <div id="controls">
             <button onclick="clearSignature()">Clear</button>
             <select id="backgroundColorSelect" onchange="changeBackgroundColor()">
@@ -79,24 +83,37 @@
         let lastX = 0;
         let lastY = 0;
 
-        canvas.addEventListener('mousedown', (e) => {
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('touchstart', startDrawing);
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchmove', draw);
+
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
             isDrawing = true;
-            [lastX, lastY] = [e.offsetX, e.offsetY];
-        });
+            [lastX, lastY] = [e.offsetX || e.touches[0].clientX, e.offsetY || e.touches[0].clientY];
+        }
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.stroke();
-                [lastX, lastY] = [e.offsetX, e.offsetY];
-            }
-        });
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const currentX = e.offsetX || e.touches[0].clientX;
+            const currentY = e.offsetY || e.touches[0].clientY;
 
-        canvas.addEventListener('mouseup', () => {
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            [lastX, lastY] = [currentX, currentY];
+        }
+
+        function stopDrawing() {
             isDrawing = false;
-        });
+        }
 
         function clearSignature() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -120,69 +137,3 @@
 </body>
 
 </html>
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signature Pad</title>
-<style>
-    #signatureCanvas {
-        border: 1px solid #000;
-    }
-</style>
-</head>
-<body>
-    <canvas id="signatureCanvas" width="400" height="200"></canvas>
-    <br>
-    <button onclick="downloadSignature()">Download Signature</button>
-    <button onclick="clearSignature()">Clear</button>
-    <label for="bgColor">Background Color:</label>
-    <input type="color" id="bgColor" name="bgColor" value="#ffffff">
-    
-    <script>
-        const canvas = document.getElementById('signatureCanvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
-
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            [lastX, lastY] = [e.offsetX, e.offsetY];
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.stroke();
-                [lastX, lastY] = [e.offsetX, e.offsetY];
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
-
-        function downloadSignature() {
-            const dataURL = canvas.toDataURL('image/png', 1.0);
-            const a = document.createElement('a');
-            a.href = dataURL;
-            a.download = 'signature.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function clearSignature() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-         
-    </script>
-</body>
-</html> -->
